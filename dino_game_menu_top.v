@@ -120,7 +120,7 @@ module dino_game_menu_top(
     wire game_btnC = (wrapper_state == WRAP_MENU_RESET) ? btnC_DPB : 1'b0;
 
     // -------------------------------------------------------------------------
-    // Existing game - instantiated unchanged.
+    // Sprite-enabled game module (partner's original dino_game_a7.v remains untouched).
     // -------------------------------------------------------------------------
     wire       game_h_sync;
     wire       game_v_sync;
@@ -128,7 +128,7 @@ module dino_game_menu_top(
     wire [3:0] game_g;
     wire [3:0] game_b;
 
-    dino_game_a7 existing_game (
+    dino_game_a7_sprites existing_game (
         .ClkPort(ClkPort),
         .Sw0(Sw0),
         .btnU(btnU),
