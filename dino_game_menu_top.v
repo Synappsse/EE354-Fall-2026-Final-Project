@@ -107,6 +107,7 @@ module dino_game_menu_top(
     end
 
     wire show_menu = (wrapper_state == WRAP_MENU) ||
+                     (wrapper_state == WRAP_STARTING) ||
                      (wrapper_state == WRAP_MENU_RESET);
 
     // While starting, drive the existing game's normal BTNL input high.
@@ -145,7 +146,7 @@ module dino_game_menu_top(
     // Menu VGA scan generator.
     // It uses the same 25 MHz timing as the existing game.
     // -------------------------------------------------------------------------
-    wire menu_scan_reset = Sw0 | game_btnC;
+    wire menu_scan_reset = Sw0;
 
     reg [27:0] MENU_DIV_CLK = 28'd0;
 
