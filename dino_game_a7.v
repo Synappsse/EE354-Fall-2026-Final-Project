@@ -6,6 +6,7 @@
 // Controls:
 //   BTNL : start / restart from menu or game-over
 //   BTNU : jump
+//   BTND : duck
 //   BTNC : reset to menu
 //   SW0  : reset to menu (kept from the VGA demo)
 //
@@ -17,6 +18,7 @@ module dino_game_a7(
     input  wire       ClkPort,
     input  wire       Sw0,
     input  wire       btnU,
+    input  wire       btnD,
     input  wire       btnL,
     input  wire       btnC,
 
@@ -43,7 +45,15 @@ module dino_game_a7(
             DIV_CLK <= DIV_CLK + 1'b1;
     end
 
+    // score increment
+    
+
     wire pixel_clk = DIV_CLK[1];
+    wire game_tick = DIV_CLK[23];
+
+    // Debounced button outputs
+    wire jump_DPB;
+    wire duck_DPB;
 
     wire       inDisplayArea;
     wire [9:0] CounterX;
@@ -59,25 +69,69 @@ module dino_game_a7(
         .CounterY(CounterY)
     );
 
+    // -------------------------------------------------------------------------
+    // Button debouncers
+    // -------------------------------------------------------------------------
+
+    ee354_debouncer #(.N_dc(28)) jump_debouncer (
+        .CLK(board_clk),
+        .RESET(reset),
+        .PB(btnU),
+        .DPB(jump_DPB),
+        .SCEN(),
+        .MCEN(),
+        .CCEN()
+    );
+
+    ee354_debouncer #(.N_dc(28)) duck_debouncer (
+        .CLK(board_clk),
+        .RESET(reset),
+        .PB(btnD),
+        .DPB(duck_DPB),
+        .SCEN(),
+        .MCEN(),
+        .CCEN()
+    );
+
     // One pulse per complete VGA frame (~60 Hz)
     wire frame_tick = (CounterX == 10'd799) && (CounterY == 10'd520);
 
     // -------------------------------------------------------------------------
     // Game constants
     // -------------------------------------------------------------------------
-    localparam [9:0] GROUND_Y      = 10'd420;
+    localparam [9:0] GROUND_Y      = 10'd420; // ground y pos
 
-    localparam [9:0] DINO_X        = 10'd80;
-    localparam [9:0] DINO_W        = 10'd32;
-    localparam [9:0] DINO_H        = 10'd40;
-    localparam [9:0] DINO_GROUND_Y = GROUND_Y - DINO_H;   // top-left Y = 380
+    localparam [9:0] DINO_X        = 10'd80; // dino x, fixed cuz background moves
+    // Normal dinosaur dimensions
+    localparam [9:0] DINO_W = 10'd32;
+    localparam [9:0] DINO_H = 10'd40;
+    localparam [9:0] DINO_GROUND_Y = GROUND_Y - DINO_H; // top
+
+
+    // Ducking dinosaur dimensions
+    localparam [9:0] DINO_DUCK_W = 10'd40;
+    localparam [9:0] DINO_DUCK_H = 10'd20;
+    localparam [9:0] DINO_DUCK_GROUND_Y = GROUND_Y - DINO_DUCK_H; // top
+
+    wire [9:0] current_dino_w =
+        duck_DPB ? DINO_DUCK_W : DINO_W;
+
+    wire [9:0] current_dino_h =
+        duck_DPB ? DINO_DUCK_H : DINO_H;
+
+    wire [9:0] current_dino_ground_y =
+        duck_DPB ? DINO_DUCK_GROUND_Y : DINO_GROUND_Y;
+
+    wire [9:0] current_dino_y =
+        current_dino_ground_y - (DINO_GROUND_Y - dino_y);
+
 
     localparam [9:0] CACTUS_W      = 10'd20;
     localparam [9:0] CACTUS_H      = 10'd45;
     localparam [9:0] CACTUS_Y      = GROUND_Y - CACTUS_H; // top-left Y = 375
     localparam [9:0] CACTUS_START_X= 10'd620;
 
-    localparam [9:0] CACTUS_SPEED  = 10'd4;
+    reg [9:0] cactus_speed  = 10'd4; // varies
 
     // -------------------------------------------------------------------------
     // Game states
@@ -96,37 +150,33 @@ module dino_game_a7(
     reg [9:0] cactus_x = CACTUS_START_X;
     reg [15:0] score = 16'd0;
 
-    // Button history for simple edge detection.
-    // Sampling once per frame also acts as a crude debounce for this prototype.
-    reg btnU_prev = 1'b0;
+    // Simple edge detection for start button
     reg btnL_prev = 1'b0;
 
-    wire jump_pressed  = btnU & ~btnU_prev;
     wire start_pressed = btnL & ~btnL_prev;
 
     // Current-frame collision box overlap.
     wire collision =
-        (DINO_X < (cactus_x + CACTUS_W)) &&
-        ((DINO_X + DINO_W) > cactus_x) &&
-        (dino_y < (CACTUS_Y + CACTUS_H)) &&
-        ((dino_y + DINO_H) > CACTUS_Y);
+        (DINO_X < (cactus_x + CACTUS_W)) && // ensures dino is on the left of cactus
+        ((DINO_X + current_dino_w) > cactus_x) && // dino right > cactus left
+        (current_dino_y < (CACTUS_Y + CACTUS_H)) && // dino top < cactus bottom (isn't already in cactus)
+        ((current_dino_y + current_dino_h) > CACTUS_Y); // dino bottom > cactus top
 
     // -------------------------------------------------------------------------
     // Game update: once per VGA frame
     // -------------------------------------------------------------------------
-    always @(posedge pixel_clk or posedge reset) begin
+    always @(posedge pixel_clk, posedge reset) begin
         if (reset) begin
             game_state <= MENU;
             dino_y <= DINO_GROUND_Y;
             jump_phase <= 6'd0;
             cactus_x <= CACTUS_START_X;
             score <= 16'd0;
-            btnU_prev <= 1'b0;
             btnL_prev <= 1'b0;
+            cactus_speed  <= 10'd4;
         end
         else if (frame_tick) begin
             // sample buttons once per frame
-            btnU_prev <= btnU;
             btnL_prev <= btnL;
 
             case (game_state)
@@ -136,16 +186,20 @@ module dino_game_a7(
                     jump_phase <= 6'd0;
                     cactus_x <= CACTUS_START_X;
                     score <= 16'd0;
-
+                    cactus_speed  <= 10'd4;
                     if (start_pressed)
                         game_state <= PLAYING;
                 end
 
                 PLAYING: begin
+                    // increment score 
+                    score <= score + 1'b1;
+                    // increment cactus_speed
+
                     // -------------------------
-                    // Jump control
+                    // Jump control - do a jump every time the button is pressed + continuously jump when held
                     // -------------------------
-                    if ((jump_phase == 0) && jump_pressed) begin
+                    if ((jump_phase == 0) && jump_DPB) begin
                         jump_phase <= 6'd1;
                     end
                     else if (jump_phase != 0) begin
@@ -181,12 +235,11 @@ module dino_game_a7(
                     // -------------------------
                     // Cactus movement
                     // -------------------------
-                    if (cactus_x <= CACTUS_SPEED) begin
+                    if (cactus_x <= cactus_speed) begin
                         cactus_x <= CACTUS_START_X;
-                        score <= score + 1'b1;
                     end
                     else begin
-                        cactus_x <= cactus_x - CACTUS_SPEED;
+                        cactus_x <= cactus_x - cactus_speed;
                     end
 
                     // -------------------------
@@ -222,9 +275,9 @@ module dino_game_a7(
 
     wire dino_on =
         (CounterX >= DINO_X) &&
-        (CounterX < (DINO_X + DINO_W)) &&
-        (CounterY >= dino_y) &&
-        (CounterY < (dino_y + DINO_H));
+        (CounterX < (DINO_X + current_dino_w)) &&
+        (CounterY >= current_dino_y) &&
+        (CounterY < (current_dino_y + current_dino_h));
 
     wire cactus_on =
         (CounterX >= cactus_x) &&
