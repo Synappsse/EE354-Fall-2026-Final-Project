@@ -143,6 +143,7 @@ module dino_game_a7(
     localparam [1:0] MENU      = 2'b00;
     localparam [1:0] PLAYING   = 2'b01;
     localparam [1:0] GAME_OVER = 2'b10;
+    localparam [1:0] WIN       = 2'b11;
 
     reg [1:0] game_state = MENU;
 
@@ -161,7 +162,9 @@ module dino_game_a7(
 
     // Detect starting or restarting a game
     wire start_game = start_pressed &&
-                    ((game_state == MENU) || (game_state == GAME_OVER));
+                ((game_state == MENU) ||
+                 (game_state == GAME_OVER) ||
+                 (game_state == WIN));
 
     // Current-frame collision box overlap.
     wire collision =
@@ -242,14 +245,24 @@ module dino_game_a7(
                         cactus_x <= cactus_x - cactus_speed;
                     end
 
-                    // -------------------------
-                    // Lose condition
-                    // -------------------------
+                    // Win / Lose conditions
                     if (collision)
                         game_state <= GAME_OVER;
+                    else if (score >= 16'd60) // approx 1 min cuz score increments about every 1 s
+                        game_state <= WIN;
                 end
 
                 GAME_OVER: begin
+                    // Freeze the scene until BTNL is pressed again.
+                    if (start_pressed) begin
+                        game_state <= PLAYING;
+                        dino_y <= DINO_GROUND_Y;
+                        jump_phase <= 6'd0;
+                        cactus_x <= CACTUS_START_X;
+                    end
+                end
+
+                WIN: begin
                     // Freeze the scene until BTNL is pressed again.
                     if (start_pressed) begin
                         game_state <= PLAYING;
@@ -387,6 +400,20 @@ module dino_game_a7(
                     else begin
                         vga_r <= 4'hF;
                         vga_g <= 4'h9;
+                        vga_b <= 4'h9;
+                    end
+                end
+
+                WIN: begin
+                    // Light green background with dark green center box
+                    if (gameover_box) begin
+                        vga_r <= 4'h0;
+                        vga_g <= 4'h8;
+                        vga_b <= 4'h0;
+                    end
+                    else begin
+                        vga_r <= 4'h9;
+                        vga_g <= 4'hF;
                         vga_b <= 4'h9;
                     end
                 end
