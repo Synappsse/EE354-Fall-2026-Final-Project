@@ -96,6 +96,10 @@ module dino_game_a7(
     // One pulse per complete VGA frame (~60 Hz)
     wire frame_tick = (CounterX == 10'd799) && (CounterY == 10'd520);
 
+    // Elapsed gameplay frames - used for timing
+    reg [11:0] frame_counter = 12'd0;
+
+
     // -------------------------------------------------------------------------
     // Game constants
     // -------------------------------------------------------------------------
@@ -139,6 +143,7 @@ module dino_game_a7(
     localparam [1:0] MENU      = 2'b00;
     localparam [1:0] PLAYING   = 2'b01;
     localparam [1:0] GAME_OVER = 2'b10;
+    localparam [1:0] WIN       = 2'b11;
 
     reg [1:0] game_state = MENU;
 
@@ -154,6 +159,12 @@ module dino_game_a7(
     reg btnL_prev = 1'b0;
 
     wire start_pressed = btnL & ~btnL_prev;
+
+    // Detect starting or restarting a game
+    wire start_game = start_pressed &&
+                ((game_state == MENU) ||
+                 (game_state == GAME_OVER) ||
+                 (game_state == WIN));
 
     // Current-frame collision box overlap.
     wire collision =
@@ -171,9 +182,7 @@ module dino_game_a7(
             dino_y <= DINO_GROUND_Y;
             jump_phase <= 6'd0;
             cactus_x <= CACTUS_START_X;
-            score <= 16'd0;
             btnL_prev <= 1'b0;
-            cactus_speed  <= 10'd4;
         end
         else if (frame_tick) begin
             // sample buttons once per frame
@@ -185,17 +194,11 @@ module dino_game_a7(
                     dino_y <= DINO_GROUND_Y;
                     jump_phase <= 6'd0;
                     cactus_x <= CACTUS_START_X;
-                    score <= 16'd0;
-                    cactus_speed  <= 10'd4;
                     if (start_pressed)
                         game_state <= PLAYING;
                 end
 
                 PLAYING: begin
-                    // increment score 
-                    score <= score + 1'b1;
-                    // increment cactus_speed
-
                     // -------------------------
                     // Jump control - do a jump every time the button is pressed + continuously jump when held
                     // -------------------------
@@ -242,11 +245,11 @@ module dino_game_a7(
                         cactus_x <= cactus_x - cactus_speed;
                     end
 
-                    // -------------------------
-                    // Lose condition
-                    // -------------------------
+                    // Win / Lose conditions
                     if (collision)
                         game_state <= GAME_OVER;
+                    else if (score >= 16'd60) // approx 1 min cuz score increments about every 1 s
+                        game_state <= WIN;
                 end
 
                 GAME_OVER: begin
@@ -256,7 +259,16 @@ module dino_game_a7(
                         dino_y <= DINO_GROUND_Y;
                         jump_phase <= 6'd0;
                         cactus_x <= CACTUS_START_X;
-                        score <= 16'd0;
+                    end
+                end
+
+                WIN: begin
+                    // Freeze the scene until BTNL is pressed again.
+                    if (start_pressed) begin
+                        game_state <= PLAYING;
+                        dino_y <= DINO_GROUND_Y;
+                        jump_phase <= 6'd0;
+                        cactus_x <= CACTUS_START_X;
                     end
                 end
 
@@ -264,6 +276,41 @@ module dino_game_a7(
 
             endcase
         end
+    end
+
+    // -------------------------------------------------------------------------
+    // Score and speed management
+    // -------------------------------------------------------------------------
+
+    always @(posedge pixel_clk or posedge reset) begin
+
+        if (reset) begin
+            frame_counter <= 12'd0;
+            score         <= 16'd0;
+            cactus_speed  <= 10'd4;
+        end
+
+        // Initialize when starting/restarting
+        else if (start_game && frame_tick) begin
+            frame_counter <= 12'd0;
+            score         <= 16'd0;
+            cactus_speed  <= 10'd4;
+        end
+
+        // Update during gameplay
+        else if ((game_state == PLAYING) && frame_tick) begin
+
+            frame_counter <= frame_counter + 1'b1;
+
+            // Score: +1 every second
+            if ((frame_counter % 60) == 59)
+                score <= score + 1'b1;
+
+            // Speed: +1 every 15 seconds, maximum 8
+            if (((frame_counter % 900) == 899) && (cactus_speed < 10'd8))
+                cactus_speed <= cactus_speed + 1'b1;
+        end
+
     end
 
     // -------------------------------------------------------------------------
@@ -353,6 +400,20 @@ module dino_game_a7(
                     else begin
                         vga_r <= 4'hF;
                         vga_g <= 4'h9;
+                        vga_b <= 4'h9;
+                    end
+                end
+
+                WIN: begin
+                    // Light green background with dark green center box
+                    if (gameover_box) begin
+                        vga_r <= 4'h0;
+                        vga_g <= 4'h8;
+                        vga_b <= 4'h0;
+                    end
+                    else begin
+                        vga_r <= 4'h9;
+                        vga_g <= 4'hF;
                         vga_b <= 4'h9;
                     end
                 end
