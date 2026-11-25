@@ -1,0 +1,33 @@
+EE354 DINO JUMP - 64 SEGMENT MAP
+================================
+
+Segment width: 225 pixels
+Total map length: 14,400 pixels
+Current sprite-branch speed: 4 pixels/frame (~60 frames/sec)
+Approximate traversal time: 60 seconds
+
+Legend:
+  -   empty
+  C   single cactus
+  CC  double cactus
+  BH  high bird (safe standing)
+  BL  low bird (duck under)
+
+00 -       16 -       32 C       48 C
+01 -       17 C       33 BL      49 CC
+02 C       18 BH      34 -       50 BL
+03 -       19 -       35 CC      51 C
+04 C       20 CC      36 C       52 BH
+05 -       21 -       37 -       53 C + BL
+06 C       22 C       38 BH      54 -
+07 -       23 C       39 C       55 CC
+08 C       24 -       40 C + BH  56 BL
+09 C       25 BL      41 -       57 C
+10 -       26 -       42 BL      58 C
+11 CC      27 C       43 C       59 BH
+12 -       28 -       44 CC      60 C + BL
+13 C       29 CC      45 -       61 CC
+14 -       30 BH      46 C + BL  62 BL
+15 BH      31 -       47 -       63 C
+
+Exact within-segment positions are encoded in dino_map.v.
