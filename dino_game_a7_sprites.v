@@ -89,6 +89,9 @@ module dino_game_a7_sprites(
 
     wire frame_tick = (CounterX == 10'd799) && (CounterY == 10'd520);
 
+    // Partner timing logic: count gameplay frames for score/speed/win timing.
+    reg [11:0] frame_counter = 12'd0;
+
     localparam [9:0] GROUND_Y = 10'd420;
 
     localparam [9:0] DINO_X = 10'd80;
@@ -136,6 +139,7 @@ module dino_game_a7_sprites(
     localparam [1:0] MENU      = 2'b00;
     localparam [1:0] PLAYING   = 2'b01;
     localparam [1:0] GAME_OVER = 2'b10;
+    localparam [1:0] WIN       = 2'b11;
 
     reg [1:0] game_state = MENU;
 
@@ -151,6 +155,12 @@ module dino_game_a7_sprites(
 
     reg btnL_prev = 1'b0;
     wire start_pressed = btnL & ~btnL_prev;
+
+    // Partner restart detection used by score/timing logic.
+    wire start_game = start_pressed &&
+                ((game_state == MENU) ||
+                 (game_state == GAME_OVER) ||
+                 (game_state == WIN));
 
     wire [5:0] seg0_num = map_segment;
     wire [5:0] seg1_num = map_segment + 6'd1;
@@ -258,11 +268,9 @@ module dino_game_a7_sprites(
             game_state <= MENU;
             dino_y <= DINO_GROUND_Y;
             jump_phase <= 6'd0;
-            score <= 16'd0;
             map_segment <= 6'd0;
             map_offset <= 9'd0;
             btnL_prev <= 1'b0;
-            cactus_speed <= 10'd4;
             anim_count <= 3'd0;
             anim_frame <= 1'b0;
         end
@@ -273,10 +281,8 @@ module dino_game_a7_sprites(
                 MENU: begin
                     dino_y <= DINO_GROUND_Y;
                     jump_phase <= 6'd0;
-                    score <= 16'd0;
                     map_segment <= 6'd0;
                     map_offset <= 9'd0;
-                    cactus_speed <= 10'd4;
                     anim_count <= 3'd0;
                     anim_frame <= 1'b0;
 
@@ -285,8 +291,6 @@ module dino_game_a7_sprites(
                 end
 
                 PLAYING: begin
-                    score <= score + 1'b1;
-
                     if (anim_count == 3'd7) begin
                         anim_count <= 3'd0;
                         anim_frame <= ~anim_frame;
@@ -334,6 +338,8 @@ module dino_game_a7_sprites(
 
                     if (collision)
                         game_state <= GAME_OVER;
+                    else if (score >= 16'd60)
+                        game_state <= WIN;
                 end
 
                 GAME_OVER: begin
@@ -341,7 +347,18 @@ module dino_game_a7_sprites(
                         game_state <= PLAYING;
                         dino_y <= DINO_GROUND_Y;
                         jump_phase <= 6'd0;
-                        score <= 16'd0;
+                        map_segment <= 6'd0;
+                        map_offset <= 9'd0;
+                        anim_count <= 3'd0;
+                        anim_frame <= 1'b0;
+                    end
+                end
+
+                WIN: begin
+                    if (start_pressed) begin
+                        game_state <= PLAYING;
+                        dino_y <= DINO_GROUND_Y;
+                        jump_phase <= 6'd0;
                         map_segment <= 6'd0;
                         map_offset <= 9'd0;
                         anim_count <= 3'd0;
@@ -351,6 +368,32 @@ module dino_game_a7_sprites(
 
                 default: game_state <= MENU;
             endcase
+        end
+    end
+
+    // -------------------------------------------------------------------------
+    // Partner score + speed management merged into sprite/map game.
+    // Score increments once per second; map speed increases every 15 seconds.
+    // -------------------------------------------------------------------------
+    always @(posedge pixel_clk or posedge reset) begin
+        if (reset) begin
+            frame_counter <= 12'd0;
+            score         <= 16'd0;
+            cactus_speed  <= 10'd4;
+        end
+        else if (start_game && frame_tick) begin
+            frame_counter <= 12'd0;
+            score         <= 16'd0;
+            cactus_speed  <= 10'd4;
+        end
+        else if ((game_state == PLAYING) && frame_tick) begin
+            frame_counter <= frame_counter + 1'b1;
+
+            if ((frame_counter % 60) == 59)
+                score <= score + 1'b1;
+
+            if (((frame_counter % 900) == 899) && (cactus_speed < 10'd8))
+                cactus_speed <= cactus_speed + 1'b1;
         end
     end
 
@@ -641,6 +684,19 @@ module dino_game_a7_sprites(
                     else begin
                         vga_r <= 4'hF;
                         vga_g <= 4'h9;
+                        vga_b <= 4'h9;
+                    end
+                end
+
+                WIN: begin
+                    if (gameover_box) begin
+                        vga_r <= 4'h0;
+                        vga_g <= 4'h8;
+                        vga_b <= 4'h0;
+                    end
+                    else begin
+                        vga_r <= 4'h9;
+                        vga_g <= 4'hF;
                         vga_b <= 4'h9;
                     end
                 end
