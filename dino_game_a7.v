@@ -208,22 +208,22 @@ module dino_game_a7(
                     else if (jump_phase != 0) begin
                         if (jump_phase <= 6'd8) begin
                             // rise quickly
-                            dino_y <= dino_y - 10'd4;
+                            dino_y <= dino_y - 10'd12;
                             jump_phase <= jump_phase + 1'b1;
                         end
                         else if (jump_phase <= 6'd16) begin
                             // rise slowly near the top
-                            dino_y <= dino_y - 10'd2;
+                            dino_y <= dino_y - 10'd6;
                             jump_phase <= jump_phase + 1'b1;
                         end
                         else if (jump_phase <= 6'd24) begin
                             // fall slowly
-                            dino_y <= dino_y + 10'd2;
+                            dino_y <= dino_y + 10'd6;
                             jump_phase <= jump_phase + 1'b1;
                         end
                         else if (jump_phase <= 6'd32) begin
                             // fall quickly
-                            dino_y <= dino_y + 10'd4;
+                            dino_y <= dino_y + 10'd12;
                             jump_phase <= jump_phase + 1'b1;
                         end
                         else begin
