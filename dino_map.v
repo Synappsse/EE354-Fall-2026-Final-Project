@@ -60,51 +60,41 @@ module dino_map(
             6'd30: begin obs1_type=3'd3; obs1_offset=8'd170; end
             6'd31: begin end
 
-            6'd32: begin obs1_type=3'd1; obs1_offset=8'd90;  end
-            6'd33: begin obs1_type=3'd4; obs1_offset=8'd155; end
-            6'd34: begin end
-            6'd35: begin obs1_type=3'd2; obs1_offset=8'd80;  end
-            6'd36: begin obs1_type=3'd1; obs1_offset=8'd155; end
+            // Easier back half: one obstacle about every other segment,
+            // no cactus+bird combo traps, and more recovery space.
+            6'd32: begin obs1_type=3'd1; obs1_offset=8'd100; end
+            6'd33: begin end
+            6'd34: begin obs1_type=3'd4; obs1_offset=8'd140; end
+            6'd35: begin end
+            6'd36: begin obs1_type=3'd1; obs1_offset=8'd120; end
             6'd37: begin end
-            6'd38: begin obs1_type=3'd3; obs1_offset=8'd85;  end
-            6'd39: begin obs1_type=3'd1; obs1_offset=8'd160; end
-            6'd40: begin
-                obs1_type=3'd1; obs1_offset=8'd20;
-                obs2_type=3'd3; obs2_offset=8'd180;
-            end
+            6'd38: begin obs1_type=3'd3; obs1_offset=8'd120; end
+            6'd39: begin end
+            6'd40: begin obs1_type=3'd1; obs1_offset=8'd80;  end
             6'd41: begin end
-            6'd42: begin obs1_type=3'd4; obs1_offset=8'd80;  end
-            6'd43: begin obs1_type=3'd1; obs1_offset=8'd165; end
-            6'd44: begin obs1_type=3'd2; obs1_offset=8'd110; end
+            6'd42: begin obs1_type=3'd4; obs1_offset=8'd130; end
+            6'd43: begin end
+            6'd44: begin obs1_type=3'd2; obs1_offset=8'd115; end
             6'd45: begin end
-            6'd46: begin
-                obs1_type=3'd1; obs1_offset=8'd20;
-                obs2_type=3'd4; obs2_offset=8'd180;
-            end
+            6'd46: begin obs1_type=3'd1; obs1_offset=8'd140; end
             6'd47: begin end
 
-            6'd48: begin obs1_type=3'd1; obs1_offset=8'd85;  end
-            6'd49: begin obs1_type=3'd2; obs1_offset=8'd160; end
-            6'd50: begin obs1_type=3'd4; obs1_offset=8'd95;  end
-            6'd51: begin obs1_type=3'd1; obs1_offset=8'd170; end
-            6'd52: begin obs1_type=3'd3; obs1_offset=8'd95;  end
-            6'd53: begin
-                obs1_type=3'd1; obs1_offset=8'd20;
-                obs2_type=3'd4; obs2_offset=8'd180;
-            end
-            6'd54: begin end
-            6'd55: begin obs1_type=3'd2; obs1_offset=8'd85;  end
-            6'd56: begin obs1_type=3'd4; obs1_offset=8'd165; end
-            6'd57: begin obs1_type=3'd1; obs1_offset=8'd100; end
-            6'd58: begin obs1_type=3'd1; obs1_offset=8'd180; end
-            6'd59: begin obs1_type=3'd3; obs1_offset=8'd105; end
-            6'd60: begin
-                obs1_type=3'd1; obs1_offset=8'd20;
-                obs2_type=3'd4; obs2_offset=8'd180;
-            end
-            6'd61: begin obs1_type=3'd2; obs1_offset=8'd140; end
-            6'd62: begin obs1_type=3'd4; obs1_offset=8'd105; end
-            6'd63: begin obs1_type=3'd1; obs1_offset=8'd120; end
+            6'd48: begin obs1_type=3'd3; obs1_offset=8'd110; end
+            6'd49: begin end
+            6'd50: begin obs1_type=3'd1; obs1_offset=8'd100; end
+            6'd51: begin end
+            6'd52: begin obs1_type=3'd4; obs1_offset=8'd145; end
+            6'd53: begin end
+            6'd54: begin obs1_type=3'd2; obs1_offset=8'd120; end
+            6'd55: begin end
+            6'd56: begin obs1_type=3'd1; obs1_offset=8'd85;  end
+            6'd57: begin end
+            6'd58: begin obs1_type=3'd3; obs1_offset=8'd140; end
+            6'd59: begin end
+            6'd60: begin obs1_type=3'd1; obs1_offset=8'd120; end
+            6'd61: begin end
+            6'd62: begin obs1_type=3'd4; obs1_offset=8'd150; end
+            6'd63: begin end
 
             default: begin end
         endcase
