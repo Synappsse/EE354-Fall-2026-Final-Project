@@ -225,28 +225,27 @@ module dino_game_menu_top(
     // 12-bit VGA palette: RRRR_GGGG_BBBB
     always @(*) begin
         case (menu_palette_index)
-            4'h0: menu_color = 12'hC98;
-            4'h1: menu_color = 12'h957;
-            4'h2: menu_color = 12'h839;
-            4'h3: menu_color = 12'h639;
-            4'h4: menu_color = 12'h538;
-            4'h5: menu_color = 12'h739;
-            4'h6: menu_color = 12'h639;
-            4'h7: menu_color = 12'h639;
-            4'h8: menu_color = 12'h639;
-            4'h9: menu_color = 12'h639;
-            4'hA: menu_color = 12'h638;
-            4'hB: menu_color = 12'h819;
-            4'hC: menu_color = 12'h619;
-            4'hD: menu_color = 12'h427;
-            4'hE: menu_color = 12'h518;
-            4'hF: menu_color = 12'h318;
+            4'h0: menu_color = 12'hFEA;
+            4'h1: menu_color = 12'hFB4;
+            4'h2: menu_color = 12'hF86;
+            4'h3: menu_color = 12'hF58;
+            4'h4: menu_color = 12'hE39;
+            4'h5: menu_color = 12'hD2A;
+            4'h6: menu_color = 12'hC1B;
+            4'h7: menu_color = 12'h91A;
+            4'h8: menu_color = 12'h90B;
+            4'h9: menu_color = 12'h70A;
+            4'hA: menu_color = 12'h609;
+            4'hB: menu_color = 12'h508;
+            4'hC: menu_color = 12'h408;
+            4'hD: menu_color = 12'h407;
+            4'hE: menu_color = 12'h308;
+            4'hF: menu_color = 12'h207;
             default: menu_color = 12'h000;
         endcase
     end
 
-    // Use the menu ROM directly. The rules panel is already part of the menu
-    // image, so there must not be a second overlay renderer.
+    // Use the clean menu ROM directly. No rules overlay is rendered.
     wire [11:0] menu_final_color =
         menu_inDisplayArea ? menu_color : 12'h000;
 
