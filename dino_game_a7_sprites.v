@@ -23,6 +23,7 @@
 module dino_game_a7_sprites(
     input  wire       ClkPort,
     input  wire       Sw0,
+    input  wire [2:0] difficulty_sw,
     input  wire       btnU,
     input  wire       btnD,
     input  wire       btnL,
@@ -135,6 +136,40 @@ module dino_game_a7_sprites(
     localparam [9:0] LOW_BIRD_Y  = 10'd356;
 
     reg [9:0] cactus_speed = 10'd4;
+
+    localparam [1:0] DIFF_EASY   = 2'd0;
+    localparam [1:0] DIFF_MEDIUM = 2'd1;
+    localparam [1:0] DIFF_HARD   = 2'd2;
+
+    reg [1:0] difficulty_latched = DIFF_MEDIUM;
+
+    wire [1:0] difficulty_selected =
+        difficulty_sw[2] ? DIFF_HARD :
+        difficulty_sw[1] ? DIFF_MEDIUM :
+        difficulty_sw[0] ? DIFF_EASY :
+                           DIFF_MEDIUM;
+
+    function [9:0] difficulty_start_speed;
+        input [1:0] d;
+        begin
+            case (d)
+                DIFF_EASY: difficulty_start_speed = 10'd3;
+                DIFF_HARD: difficulty_start_speed = 10'd5;
+                default:   difficulty_start_speed = 10'd4;
+            endcase
+        end
+    endfunction
+
+    function [9:0] difficulty_max_speed;
+        input [1:0] d;
+        begin
+            case (d)
+                DIFF_EASY: difficulty_max_speed = 10'd5;
+                DIFF_HARD: difficulty_max_speed = 10'd7;
+                default:   difficulty_max_speed = 10'd6;
+            endcase
+        end
+    endfunction
 
     localparam [1:0] MENU      = 2'b00;
     localparam [1:0] PLAYING   = 2'b01;
@@ -433,14 +468,16 @@ module dino_game_a7_sprites(
     // -------------------------------------------------------------------------
     always @(posedge pixel_clk or posedge reset) begin
         if (reset) begin
-            frame_counter <= 12'd0;
-            score         <= 16'd0;
-            cactus_speed  <= 10'd4;
+            frame_counter      <= 12'd0;
+            score              <= 16'd0;
+            difficulty_latched <= DIFF_MEDIUM;
+            cactus_speed       <= 10'd4;
         end
         else if (start_game && frame_tick) begin
-            frame_counter <= 12'd0;
-            score         <= 16'd0;
-            cactus_speed  <= 10'd4;
+            frame_counter      <= 12'd0;
+            score              <= 16'd0;
+            difficulty_latched <= difficulty_selected;
+            cactus_speed       <= difficulty_start_speed(difficulty_selected);
         end
         else if ((game_state == PLAYING) && frame_tick) begin
             frame_counter <= frame_counter + 1'b1;
@@ -448,9 +485,12 @@ module dino_game_a7_sprites(
             if ((frame_counter % 60) == 59)
                 score <= score + 1'b1;
 
-            // Keep the first 30 seconds' ramp, then cap at 6 px/frame.
-            // 0-15 s: 4, 15-30 s: 5, 30-60 s: 6.
-            if (((frame_counter % 900) == 899) && (cactus_speed < 10'd6))
+            // Difficulty-specific speed ramp every 15 seconds.
+            // Easy:   3 -> 4 -> 5
+            // Medium: 4 -> 5 -> 6
+            // Hard:   5 -> 6 -> 7
+            if (((frame_counter % 900) == 899) &&
+                (cactus_speed < difficulty_max_speed(difficulty_latched)))
                 cactus_speed <= cactus_speed + 1'b1;
         end
     end
