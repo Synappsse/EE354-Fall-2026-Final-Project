@@ -245,9 +245,24 @@ module dino_game_menu_top(
         endcase
     end
 
-    wire [3:0] menu_r = menu_inDisplayArea ? menu_color[11:8] : 4'h0;
-    wire [3:0] menu_g = menu_inDisplayArea ? menu_color[7:4]  : 4'h0;
-    wire [3:0] menu_b = menu_inDisplayArea ? menu_color[3:0]  : 4'h0;
+    wire rules_on;
+    wire [11:0] rules_color;
+
+    menu_rules_overlay rules_overlay (
+        .x(menu_x),
+        .y(menu_y),
+        .on(rules_on),
+        .color(rules_color)
+    );
+
+    wire [11:0] menu_final_color =
+        !menu_inDisplayArea ? 12'h000 :
+        rules_on ? rules_color :
+        menu_color;
+
+    wire [3:0] menu_r = menu_final_color[11:8];
+    wire [3:0] menu_g = menu_final_color[7:4];
+    wire [3:0] menu_b = menu_final_color[3:0];
 
     // -------------------------------------------------------------------------
     // Final VGA mux
