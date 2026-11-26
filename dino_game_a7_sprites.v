@@ -229,80 +229,78 @@ module dino_game_a7_sprites(
         end
     endfunction
 
-    // Collision boxes are intentionally smaller than sprite canvases.
-    // This matches the visible gray body instead of transparent/white padding.
+    // Conservative collision boxes matched to the visible gray body pixels.
+    // White sprite outlines and transparent padding do NOT count as a hit.
     function obstacle_collides;
         input signed [12:0] ox;
         input [2:0] t;
         input [9:0] dy;
         input [9:0] dh;
-        reg [9:0] ow;
-        reg [9:0] oy;
-        reg [9:0] oh;
-        reg [9:0] dx;
-        reg [9:0] dw;
-        reg [9:0] dyt;
-        reg [9:0] dht;
-        reg signed [12:0] oleft;
-        reg signed [12:0] oright;
+        reg [9:0] dx_left;
+        reg [9:0] dx_right;
+        reg [9:0] dy_top;
+        reg [9:0] dy_bottom;
+        reg signed [12:0] ox_left;
+        reg signed [12:0] ox_right;
+        reg [9:0] oy_top;
+        reg [9:0] oy_bottom;
         begin
-            // Very forgiving inner-body hitbox.  White outlines and tail/feet
-            // are intentionally excluded so the collision matches what the
-            // player visually perceives on VGA.
             if (duck_DPB) begin
-                dx  = DINO_X + 10'd11;
-                dw  = 10'd34;
-                dyt = dy + 10'd8;
-                dht = 10'd14;
+                dx_left   = DINO_X + 10'd10;
+                dx_right  = DINO_X + 10'd47;
+                dy_top    = dy + 10'd8;
+                dy_bottom = dy + 10'd25;
             end
             else begin
-                dx  = DINO_X + 10'd12;
-                dw  = 10'd22;
-                dyt = dy + 10'd9;
-                dht = 10'd27;
+                dx_left   = DINO_X + 10'd10;
+                dx_right  = DINO_X + 10'd33;
+                dy_top    = dy + 10'd8;
+                dy_bottom = dy + 10'd42;
             end
 
             case (t)
                 CACTUS: begin
-                    oleft = ox + 13'sd9;
-                    ow = 10'd10;
-                    oy = CACTUS_Y + 10'd8;
-                    oh = 10'd31;
+                    ox_left   = ox + 13'sd9;
+                    ox_right  = ox + 13'sd19;
+                    oy_top    = CACTUS_Y + 10'd9;
+                    oy_bottom = CACTUS_Y + 10'd43;
                 end
+
                 DOUBLE_CACTUS: begin
-                    oleft = ox + 13'sd9;
-                    ow = 10'd42;
-                    oy = CACTUS_Y + 10'd8;
-                    oh = 10'd31;
+                    ox_left   = ox + 13'sd9;
+                    ox_right  = ox + 13'sd51;
+                    oy_top    = CACTUS_Y + 10'd9;
+                    oy_bottom = CACTUS_Y + 10'd43;
                 end
+
                 HIGH_BIRD: begin
-                    oleft = ox + 13'sd9;
-                    ow = 10'd27;
-                    oy = HIGH_BIRD_Y + 10'd10;
-                    oh = 10'd8;
+                    ox_left   = ox + 13'sd7;
+                    ox_right  = ox + 13'sd38;
+                    oy_top    = HIGH_BIRD_Y + 10'd10;
+                    oy_bottom = HIGH_BIRD_Y + 10'd18;
                 end
+
                 LOW_BIRD: begin
-                    oleft = ox + 13'sd9;
-                    ow = 10'd27;
-                    oy = LOW_BIRD_Y + 10'd10;
-                    oh = 10'd8;
+                    ox_left   = ox + 13'sd7;
+                    ox_right  = ox + 13'sd38;
+                    oy_top    = LOW_BIRD_Y + 10'd10;
+                    oy_bottom = LOW_BIRD_Y + 10'd18;
                 end
+
                 default: begin
-                    oleft = ox;
-                    ow = 10'd0;
-                    oy = 10'd0;
-                    oh = 10'd0;
+                    ox_left   = 13'sd0;
+                    ox_right  = 13'sd0;
+                    oy_top    = 10'd0;
+                    oy_bottom = 10'd0;
                 end
             endcase
 
-            oright = oleft + $signed({3'd0,ow});
-
             obstacle_collides =
                 (t != EMPTY) &&
-                ($signed({3'd0,dx}) < oright) &&
-                ($signed({3'd0,(dx + dw)}) > oleft) &&
-                (dyt < (oy + oh)) &&
-                ((dyt + dht) > oy);
+                ($signed({3'd0,dx_left}) < ox_right) &&
+                ($signed({3'd0,dx_right}) > ox_left) &&
+                (dy_top < oy_bottom) &&
+                (dy_bottom > oy_top);
         end
     endfunction
 
