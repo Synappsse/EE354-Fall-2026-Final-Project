@@ -246,43 +246,46 @@ module dino_game_a7_sprites(
         reg signed [12:0] oleft;
         reg signed [12:0] oright;
         begin
+            // Very forgiving inner-body hitbox.  White outlines and tail/feet
+            // are intentionally excluded so the collision matches what the
+            // player visually perceives on VGA.
             if (duck_DPB) begin
-                dx  = DINO_X + 10'd5;
-                dw  = 10'd49;
-                dyt = dy + 10'd4;
-                dht = 10'd22;
+                dx  = DINO_X + 10'd11;
+                dw  = 10'd34;
+                dyt = dy + 10'd8;
+                dht = 10'd14;
             end
             else begin
-                dx  = DINO_X + 10'd6;
-                dw  = 10'd34;
-                dyt = dy + 10'd4;
-                dht = 10'd39;
+                dx  = DINO_X + 10'd12;
+                dw  = 10'd22;
+                dyt = dy + 10'd9;
+                dht = 10'd27;
             end
 
             case (t)
                 CACTUS: begin
-                    oleft = ox + 13'sd4;
-                    ow = 10'd21;
-                    oy = CACTUS_Y + 10'd2;
-                    oh = 10'd42;
+                    oleft = ox + 13'sd9;
+                    ow = 10'd10;
+                    oy = CACTUS_Y + 10'd8;
+                    oh = 10'd31;
                 end
                 DOUBLE_CACTUS: begin
-                    oleft = ox + 13'sd4;
-                    ow = 10'd54;
-                    oy = CACTUS_Y + 10'd2;
-                    oh = 10'd42;
+                    oleft = ox + 13'sd9;
+                    ow = 10'd42;
+                    oy = CACTUS_Y + 10'd8;
+                    oh = 10'd31;
                 end
                 HIGH_BIRD: begin
-                    oleft = ox + 13'sd3;
-                    ow = 10'd40;
-                    oy = HIGH_BIRD_Y + 10'd8;
-                    oh = 10'd16;
+                    oleft = ox + 13'sd9;
+                    ow = 10'd27;
+                    oy = HIGH_BIRD_Y + 10'd10;
+                    oh = 10'd8;
                 end
                 LOW_BIRD: begin
-                    oleft = ox + 13'sd3;
-                    ow = 10'd40;
-                    oy = LOW_BIRD_Y + 10'd8;
-                    oh = 10'd16;
+                    oleft = ox + 13'sd9;
+                    ow = 10'd27;
+                    oy = LOW_BIRD_Y + 10'd10;
+                    oh = 10'd8;
                 end
                 default: begin
                     oleft = ox;
