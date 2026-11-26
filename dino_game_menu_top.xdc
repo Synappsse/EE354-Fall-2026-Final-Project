@@ -4,7 +4,13 @@
 set_property -dict { PACKAGE_PIN E3 IOSTANDARD LVCMOS33 } [get_ports { ClkPort }]
 create_clock -add -name sys_clk_pin -period 10.00 -waveform {0 5} [get_ports { ClkPort }]
 
-## SW0 intentionally unused in integration build
+## Difficulty switches
+## SW0 = Easy
+set_property -dict { PACKAGE_PIN J15 IOSTANDARD LVCMOS33 } [get_ports { difficulty_sw[0] }]
+## SW1 = Medium
+set_property -dict { PACKAGE_PIN L16 IOSTANDARD LVCMOS33 } [get_ports { difficulty_sw[1] }]
+## SW2 = Hard
+set_property -dict { PACKAGE_PIN M13 IOSTANDARD LVCMOS33 } [get_ports { difficulty_sw[2] }]
 
 ## Buttons
 ## BTNU = jump
