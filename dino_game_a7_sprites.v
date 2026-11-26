@@ -154,7 +154,10 @@ module dino_game_a7_sprites(
     reg       anim_frame = 1'b0;
 
     reg btnL_prev = 1'b0;
+    reg jump_prev = 1'b0;
+
     wire start_pressed = btnL & ~btnL_prev;
+    wire jump_pressed  = jump_DPB & ~jump_prev;
 
     // Partner restart detection used by score/timing logic.
     wire start_game = start_pressed &&
@@ -322,11 +325,13 @@ module dino_game_a7_sprites(
             map_segment <= 6'd0;
             map_offset <= 9'd0;
             btnL_prev <= 1'b0;
+            jump_prev <= 1'b0;
             anim_count <= 3'd0;
             anim_frame <= 1'b0;
         end
         else if (frame_tick) begin
             btnL_prev <= btnL;
+            jump_prev <= jump_DPB;
 
             case (game_state)
                 MENU: begin
@@ -350,7 +355,7 @@ module dino_game_a7_sprites(
                         anim_count <= anim_count + 1'b1;
                     end
 
-                    if ((jump_phase == 0) && jump_DPB) begin
+                    if ((jump_phase == 0) && jump_pressed) begin
                         jump_phase <= 6'd1;
                     end
                     else if (jump_phase != 0) begin
