@@ -448,7 +448,9 @@ module dino_game_a7_sprites(
             if ((frame_counter % 60) == 59)
                 score <= score + 1'b1;
 
-            if (((frame_counter % 900) == 899) && (cactus_speed < 10'd8))
+            // Keep the first 30 seconds' ramp, then cap at 6 px/frame.
+            // 0-15 s: 4, 15-30 s: 5, 30-60 s: 6.
+            if (((frame_counter % 900) == 899) && (cactus_speed < 10'd6))
                 cactus_speed <= cactus_speed + 1'b1;
         end
     end
