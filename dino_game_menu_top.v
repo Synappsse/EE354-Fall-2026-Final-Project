@@ -142,15 +142,10 @@ module dino_game_menu_top(
     // Menu VGA scan generator.
     // It uses the same 25 MHz timing as the existing game.
     // -------------------------------------------------------------------------
-    wire menu_scan_reset = 1'b0;
-
     reg [27:0] MENU_DIV_CLK = 28'd0;
 
-    always @(posedge ClkPort or posedge menu_scan_reset) begin
-        if (menu_scan_reset)
-            MENU_DIV_CLK <= 28'd0;
-        else
-            MENU_DIV_CLK <= MENU_DIV_CLK + 1'b1;
+    always @(posedge ClkPort) begin
+        MENU_DIV_CLK <= MENU_DIV_CLK + 1'b1;
     end
 
     wire menu_pixel_clk = MENU_DIV_CLK[1];
@@ -163,7 +158,7 @@ module dino_game_menu_top(
 
     hvsync_generator menu_syncgen (
         .clk(menu_pixel_clk),
-        .reset(menu_scan_reset),
+        .reset(1'b0),
         .vga_h_sync(menu_h_sync),
         .vga_v_sync(menu_v_sync),
         .inDisplayArea(menu_inDisplayArea),
