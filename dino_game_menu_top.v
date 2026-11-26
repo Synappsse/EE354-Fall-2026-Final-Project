@@ -245,20 +245,10 @@ module dino_game_menu_top(
         endcase
     end
 
-    wire rules_on;
-    wire [11:0] rules_color;
-
-    menu_rules_overlay rules_overlay (
-        .x(menu_x),
-        .y(menu_y),
-        .on(rules_on),
-        .color(rules_color)
-    );
-
+    // Use the menu ROM directly. The rules panel is already part of the menu
+    // image, so there must not be a second overlay renderer.
     wire [11:0] menu_final_color =
-        !menu_inDisplayArea ? 12'h000 :
-        rules_on ? rules_color :
-        menu_color;
+        menu_inDisplayArea ? menu_color : 12'h000;
 
     wire [3:0] menu_r = menu_final_color[11:8];
     wire [3:0] menu_g = menu_final_color[7:4];
