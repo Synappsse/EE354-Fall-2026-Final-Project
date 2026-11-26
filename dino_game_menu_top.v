@@ -14,6 +14,12 @@
 //   BTND = duck
 //   BTNL = restart from game-over
 //
+// Difficulty switches:
+//   SW0 = Easy
+//   SW1 = Medium
+//   SW2 = Hard
+//   Harder setting wins if multiple are ON; all OFF defaults to Medium.
+//
 // Wrapper behavior:
 //   Power-up -> hand-drawn menu
 //   BTNC on menu   -> start the existing game
@@ -22,6 +28,7 @@
 
 module dino_game_menu_top(
     input  wire       ClkPort,
+    input  wire [2:0] difficulty_sw,
     input  wire       btnU,
     input  wire       btnD,
     input  wire       btnL,
@@ -125,6 +132,7 @@ module dino_game_menu_top(
     dino_game_a7_sprites existing_game (
         .ClkPort(ClkPort),
         .Sw0(1'b0),
+        .difficulty_sw(difficulty_sw),
         .btnU(btnU),
         .btnD(btnD),
         .btnL(game_btnL),
