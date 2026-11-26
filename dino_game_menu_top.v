@@ -13,7 +13,6 @@
 //   BTNU = jump
 //   BTND = duck
 //   BTNL = restart from game-over
-//   SW0 is ignored by the integration wrapper
 //
 // Wrapper behavior:
 //   Power-up -> hand-drawn menu
@@ -23,7 +22,6 @@
 
 module dino_game_menu_top(
     input  wire       ClkPort,
-    input  wire       Sw0,
     input  wire       btnU,
     input  wire       btnD,
     input  wire       btnL,
@@ -126,7 +124,7 @@ module dino_game_menu_top(
 
     dino_game_a7_sprites existing_game (
         .ClkPort(ClkPort),
-        .Sw0(1'b0),
+        .1'b0(1'b0),
         .btnU(btnU),
         .btnD(btnD),
         .btnL(game_btnL),
