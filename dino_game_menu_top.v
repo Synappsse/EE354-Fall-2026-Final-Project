@@ -124,7 +124,7 @@ module dino_game_menu_top(
 
     dino_game_a7_sprites existing_game (
         .ClkPort(ClkPort),
-        .1'b0(1'b0),
+        .Sw0(1'b0),
         .btnU(btnU),
         .btnD(btnD),
         .btnL(game_btnL),
